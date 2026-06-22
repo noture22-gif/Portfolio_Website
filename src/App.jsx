@@ -1,4 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import profilePhoto from '../assets/生活照-1280.jpg';
+import emailIcon from '../assets/icon/email.svg';
+import phoneIcon from '../assets/icon/phone.svg';
+import wechatIcon from '../assets/icon/wechat.svg';
+import TiltedCard from './components/TiltedCard.jsx';
+import BorderGlow from './components/BorderGlow.jsx';
 
 const navItems = [
   { label: '首页', href: '#hero' },
@@ -133,67 +139,120 @@ const strengths = [
   },
 ];
 
+function useInViewActivity(ref) {
+  const [isActive, setIsActive] = useState(true);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || !('IntersectionObserver' in window)) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsActive(entry.isIntersecting),
+      { rootMargin: '20% 0px' },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return isActive;
+}
 function VideoBackdrop() {
+  const ref = useRef(null);
+  const isActive = useInViewActivity(ref);
+
   return (
-    <div className="video-backdrop" aria-hidden="true">
+    <div ref={ref} className={`video-backdrop ${isActive ? 'is-active' : ''}`} aria-hidden="true">
       <div className="mesh mesh-one" />
       <div className="mesh mesh-two" />
       <div className="grid-flow" />
       <div className="scan-line" />
       <div className="particle-field">
         {Array.from({ length: 18 }, (_, index) => (
-          <span
-            key={index}
-            style={{
-              '--i': index,
-              '--x': `${(index * 7) % 100}%`,
-              '--y': `${18 + ((index * 11) % 54)}%`,
-            }}
-          />
+          <span key={index} style={{
+            '--i': index,
+            '--x': `${(index * 7) % 100}%`,
+            '--y': `${18 + ((index * 11) % 54)}%`,
+          }} />
         ))}
       </div>
     </div>
   );
 }
+function Grainient({ color1, color2, color3, timeSpeed, warpStrength, warpSpeed, warpAmplitude, blendSoftness, rotationAmount, grainAmount, grainScale, contrast, saturation, centerX, centerY, zoom }) {
+  const ref = useRef(null);
+  const isActive = useInViewActivity(ref);
 
+  return (
+    <div
+      ref={ref}
+      className={`grainient ${isActive ? 'is-active' : ''}`}
+      aria-hidden="true"
+      style={{
+        '--grainient-color-1': color1,
+        '--grainient-color-2': color2,
+        '--grainient-color-3': color3,
+        '--grainient-speed': `${Math.max(timeSpeed, 0.1) * 36}s`,
+        '--grainient-warp-speed': `${Math.max(warpSpeed, 0.1) * 15}s`,
+        '--grainient-warp': `${warpStrength * warpAmplitude}px`,
+        '--grainient-softness': blendSoftness,
+        '--grainient-rotation': `${rotationAmount * 0.1}deg`,
+        '--grainient-grain-opacity': grainAmount,
+        '--grainient-grain-scale': `${grainScale}px`,
+        '--grainient-contrast': contrast,
+        '--grainient-saturation': saturation,
+        '--grainient-x': `${centerX * 50 + 50}%`,
+        '--grainient-y': `${centerY * 50 + 50}%`,
+        '--grainient-zoom': zoom,
+      }}
+    >
+      <span className="grainient-color grainient-color-one" />
+      <span className="grainient-color grainient-color-two" />
+      <span className="grainient-color grainient-color-three" />
+      <span className="grainient-grain" />
+    </div>
+  );
+}
+function SectionGrainient() {
+  return <Grainient color1="#CCEBF8" color2="#F8FAFD" color3="#CCE0FB" timeSpeed={0.25} warpStrength={1} warpSpeed={2} warpAmplitude={50} blendSoftness={0.05} rotationAmount={500} grainAmount={0.1} grainScale={2} contrast={1.5} saturation={1} centerX={0} centerY={0} zoom={0.9} />;
+}
 function Header() {
   const [isFloating, setIsFloating] = useState(false);
+  const isFloatingRef = useRef(false);
+  const frame = useRef(null);
 
   useEffect(() => {
     const updateHeaderState = () => {
-      setIsFloating(window.scrollY > window.innerHeight * 0.72);
+      if (frame.current) return;
+      frame.current = requestAnimationFrame(() => {
+        const next = window.scrollY > window.innerHeight * 0.72;
+        if (next !== isFloatingRef.current) {
+          isFloatingRef.current = next;
+          setIsFloating(next);
+        }
+        frame.current = null;
+      });
     };
 
     updateHeaderState();
     window.addEventListener('scroll', updateHeaderState, { passive: true });
     window.addEventListener('resize', updateHeaderState);
-
     return () => {
       window.removeEventListener('scroll', updateHeaderState);
       window.removeEventListener('resize', updateHeaderState);
+      if (frame.current) cancelAnimationFrame(frame.current);
     };
   }, []);
 
   return (
     <header className={`site-header ${isFloating ? 'is-floating' : ''}`}>
-      <a className="brand" href="#hero" aria-label="回到首页">
-        <span>HJH</span>
-        <strong>Portfolio</strong>
-      </a>
+      <a className="brand" href="#hero" aria-label="回到首页"><span>HJH</span><strong>Portfolio</strong></a>
       <nav className="nav-links" aria-label="页面导航">
-        {navItems.map((item) => (
-          <a key={item.href} href={item.href}>
-            {item.label}
-          </a>
-        ))}
+        {navItems.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
       </nav>
-      <a className="header-cta" href="mailto:942179107@qq.com">
-        联系我
-      </a>
+      <a className="header-cta" href="mailto:942179107@qq.com">联系我</a>
     </header>
   );
 }
-
 function Hero() {
   return (
     <section className="hero section-screen" id="hero">
@@ -212,7 +271,7 @@ function Hero() {
             查看作品
           </a>
           <a className="ghost-btn" href="mailto:942179107@qq.com">
-            <span aria-hidden="true">✉</span>
+            <img className="contact-icon" src={emailIcon} alt="" aria-hidden="true" />
             942179107@qq.com
           </a>
         </div>
@@ -237,13 +296,21 @@ function SectionTitle({ english, chinese, body, wide = false }) {
 function Experience() {
   return (
     <section className="section experience-section" id="experience">
-      <div className="shell">
+      <SectionGrainient />
+      <div className="shell section-content">
         <SectionTitle english="WORK EXPERIENCE" chinese="个人经历" />
 
         <div className="profile-layout">
-          <div className="profile-image" aria-label="人物形象占位">
-            <div className="profile-image-mark">HJH</div>
-          </div>
+          <TiltedCard
+            className="profile-image"
+            imageSrc={profilePhoto}
+            altText="黄家泓在海边的生活照"
+            containerHeight="var(--profile-card-height)"
+            imageHeight="100%"
+            imageWidth="100%"
+            rotateAmplitude={6}
+            scaleOnHover={1.035}
+          />
 
           <div className="profile-copy">
             <span className="micro-label">about me</span>
@@ -307,7 +374,8 @@ function Experience() {
 function Work() {
   return (
     <section className="section work-section" id="work">
-      <div className="shell">
+      <SectionGrainient />
+      <div className="shell section-content">
         <SectionTitle
           english="SELECTED WORKS"
           chinese="精选作品"
@@ -360,15 +428,29 @@ function WorkGroup({ title, label, works, compact = false }) {
 function Strengths() {
   return (
     <section className="section strengths-section" id="strengths">
-      <div className="shell">
+      <SectionGrainient />
+      <div className="shell section-content">
         <SectionTitle english="CAPABILITIES" chinese="个人优势" wide />
         <div className="strength-grid">
           {strengths.map((item, index) => (
-            <article className="strength-card" key={item.title}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
-            </article>
+            <BorderGlow
+              key={item.title}
+              className="strength-glow"
+              edgeSensitivity={24}
+              glowColor="208 88 68"
+              backgroundColor="#FFFFFF"
+              borderRadius={8}
+              glowRadius={26}
+              glowIntensity={0.62}
+              coneSpread={22}
+              colors={['#1477FF', '#11B7CF', '#CCEBF8']}
+            >
+              <article className="strength-card">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
+            </BorderGlow>
           ))}
         </div>
       </div>
@@ -379,21 +461,24 @@ function Strengths() {
 function Contact() {
   return (
     <section className="contact-section section-screen" id="contact">
+      <SectionGrainient />
       <div className="shell contact-content">
         <SectionTitle english="CONTACT" chinese="联系方式" />
-        <h2 className="contact-statement">期待与优秀团队一起，把复杂产品做得更自然。</h2>
+        <h2 className="contact-statement">
+          期待与优秀团队一起，<span className="contact-accent">把</span>复杂<span className="contact-accent">产品</span><span className="contact-accent">做</span>得更<span className="contact-accent">自然</span>。
+        </h2>
 
         <div className="contact-actions" aria-label="联系方式">
           <a className="contact-pill primary" href="mailto:942179107@qq.com">
-            <span aria-hidden="true">✉</span>
+            <img className="contact-icon" src={emailIcon} alt="" aria-hidden="true" />
             发送邮件
           </a>
           <a className="contact-pill" href="tel:13510590339">
-            <span aria-hidden="true">☏</span>
+            <img className="contact-icon" src={phoneIcon} alt="" aria-hidden="true" />
             13510590339
           </a>
           <div className="contact-pill">
-            <span aria-hidden="true">◎</span>
+            <img className="contact-icon" src={wechatIcon} alt="" aria-hidden="true" />
             JiaHooong
           </div>
         </div>
@@ -407,14 +492,81 @@ function Contact() {
   );
 }
 
+function usePortfolioMotion(root) {
+  useLayoutEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+
+    let cancelled = false;
+    let context;
+
+    const initialise = async () => {
+      const [{ gsap }, { ScrollTrigger }] = await Promise.all([
+        import('gsap'),
+        import('gsap/ScrollTrigger'),
+      ]);
+      if (cancelled) return;
+
+      gsap.registerPlugin(ScrollTrigger);
+      context = gsap.context(() => {
+        const heroLines = gsap.utils.toArray('.hero h1 > strong, .hero h1 > span');
+        const opening = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+        opening
+          .set('.site-header', { yPercent: -130, opacity: 0 })
+          .set('.hero .eyebrow, .hero-copy, .hero-actions, .scroll-cue', { y: 34, opacity: 0 })
+          .set(heroLines, { yPercent: 115, scaleY: 0.72, opacity: 0, transformOrigin: '0% 100%' })
+          .to('.site-header', { yPercent: 0, opacity: 1, duration: 1.15, ease: 'expo.out' }, 0.18)
+          .to('.hero .eyebrow', { y: 0, opacity: 1, duration: 0.9 }, 0.48)
+          .to(heroLines, { yPercent: 0, scaleY: 1, opacity: 1, duration: 1.35, stagger: 0.16 }, 0.62)
+          .to('.hero-copy, .hero-actions', { y: 0, opacity: 1, duration: 0.85, stagger: 0.12 }, 1.28)
+          .to('.scroll-cue', { y: 0, opacity: 1, duration: 0.7 }, 1.68);
+
+        gsap.utils.toArray('.section, .contact-section').forEach((section) => {
+          const heading = section.querySelector('.section-heading h2');
+          const chip = section.querySelector('.section-chip');
+          const cards = section.querySelectorAll('.profile-image, .profile-copy, .career-item, .project-card, .strength-glow, .contact-statement, .contact-actions, .contact-footer');
+
+          if (heading) gsap.fromTo(heading, { xPercent: -22, y: 70, scaleX: 0.78, opacity: 0, transformOrigin: '0% 50%' }, {
+            xPercent: 0, y: 0, scaleX: 1, opacity: 1, duration: 1.25, ease: 'power4.out',
+            scrollTrigger: { trigger: section, start: 'top 72%', once: true },
+          });
+          if (chip) gsap.fromTo(chip, { y: 22, opacity: 0 }, {
+            y: 0, opacity: 1, duration: 0.7, ease: 'power3.out',
+            scrollTrigger: { trigger: section, start: 'top 68%', once: true },
+          });
+          if (cards.length) gsap.fromTo(cards, { y: 78, opacity: 0, rotateX: -7, transformOrigin: '50% 100%' }, {
+            y: 0, opacity: 1, rotateX: 0, duration: 1.08, stagger: 0.11, ease: 'power4.out',
+            scrollTrigger: { trigger: section, start: 'top 62%', once: true },
+          });
+        });
+
+        gsap.utils.toArray('.project-visual').forEach((visual) => {
+          gsap.fromTo(visual, { yPercent: 12, scale: 1.08 }, {
+            yPercent: -4, scale: 1, ease: 'none',
+            scrollTrigger: { trigger: visual, start: 'top bottom', end: 'bottom top', scrub: 1.2 },
+          });
+        });
+      }, root);
+    };
+
+    initialise();
+    return () => {
+      cancelled = true;
+      context?.revert();
+    };
+  }, [root]);
+}
 export default function App() {
+  const root = useRef(null);
+  usePortfolioMotion(root);
+
   return (
-    <>
+    <main ref={root}>
       <Hero />
       <Experience />
       <Work />
       <Strengths />
       <Contact />
-    </>
+    </main>
   );
 }
