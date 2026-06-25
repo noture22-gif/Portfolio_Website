@@ -1,11 +1,29 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import profilePhoto from '../assets/生活照-1280.jpg';
+import nounSystemCover from '../assets/p1.png';
+import xdataCover from '../assets/p2.png';
+import trainTicketCover from '../assets/p3.png';
+import bitongWalletCover from '../assets/p4.png';
+import misGuidelineCover from '../assets/p5.png';
+import experienceMagazineCover from '../assets/p6.png';
+import aiComponentLibraryCover from '../assets/p7.png';
 import emailIcon from '../assets/icon/email.svg';
 import phoneIcon from '../assets/icon/phone.svg';
 import wechatIcon from '../assets/icon/wechat.svg';
 import TiltedCard from './components/TiltedCard.jsx';
 import BorderGlow from './components/BorderGlow.jsx';
 
+const galleryFrom = (modules) => Object.entries(modules)
+  .sort(([pathA], [pathB]) => pathA.localeCompare(pathB, undefined, { numeric: true }))
+  .map(([, image]) => image);
+
+const project1Gallery = galleryFrom(import.meta.glob('../assets/project1/*.{png,jpg,jpeg,webp}', { eager: true, import: 'default' }));
+const project2Gallery = galleryFrom(import.meta.glob('../assets/project2/*.{png,jpg,jpeg,webp}', { eager: true, import: 'default' }));
+const project3Gallery = galleryFrom(import.meta.glob('../assets/project3/*.{png,jpg,jpeg,webp}', { eager: true, import: 'default' }));
+const project4Gallery = galleryFrom(import.meta.glob('../assets/project4/*.{png,jpg,jpeg,webp}', { eager: true, import: 'default' }));
+const project5Gallery = galleryFrom(import.meta.glob('../assets/project5/*.{png,jpg,jpeg,webp}', { eager: true, import: 'default' }));
+const project6Gallery = galleryFrom(import.meta.glob('../assets/project6/*.{png,jpg,jpeg,webp}', { eager: true, import: 'default' }));
+const project7Gallery = galleryFrom(import.meta.glob('../assets/project7/*.{png,jpg,jpeg,webp}', { eager: true, import: 'default' }));
 const navItems = [
   { label: '首页', href: '#hero' },
   { label: '经历', href: '#experience' },
@@ -59,6 +77,8 @@ const projectWorks = [
     summary:
       '从 0 到 1 构建面向微信支付线研发与合规人员的名词系统，统一专有名词、消除沟通歧义，并创新设计气泡名词解析与富文本详情布局。',
     tone: 'blue',
+    cover: nounSystemCover,
+    gallery: project1Gallery,
   },
   {
     title: 'XData 数据门户',
@@ -68,6 +88,8 @@ const projectWorks = [
     summary:
       '重构平台资产权限交接流程，将任务拆分为审批前后阶段，重组检索边界和交互约束，降低认知负荷并规避潜在操作风险。',
     tone: 'cyan',
+    cover: xdataCover,
+    gallery: project2Gallery,
   },
   {
     title: '马踏飞燕-火车票',
@@ -77,6 +99,8 @@ const projectWorks = [
     summary:
       '围绕火车票查询、车次筛选、订单填写与支付转化等关键链路，输出移动端票务场景的界面设计与体验优化方案。',
     tone: 'silver',
+    cover: trainTicketCover,
+    gallery: project3Gallery,
     reference: 'references/马踏飞燕-火车票.pdf',
   },
   {
@@ -87,6 +111,8 @@ const projectWorks = [
     summary:
       '独立负责钱包产品移动端、网页与 H5 活动设计，参与前期需求分析、原型评审，并协助开发推动界面与交互落地。',
     tone: 'graphite',
+    cover: bitongWalletCover,
+    gallery: project4Gallery,
     reference: 'references/币通钱包.pdf',
   },
 ];
@@ -100,6 +126,8 @@ const teamWorks = [
     summary:
       '参与体验微刊策划与编辑，将设计定律、交互方法论转化为图文结合的轻量内容，帮助团队在碎片化时间系统学习。',
     tone: 'blue',
+    cover: experienceMagazineCover,
+    gallery: project5Gallery,
   },
   {
     title: 'MIS 设计规范',
@@ -109,8 +137,39 @@ const teamWorks = [
     summary:
       '梳理 Web 端通用组件、相似组件适用边界与统一设计 Token，帮助产品、设计、研发团队快速精准选用组件。',
     tone: 'cyan',
+    cover: misGuidelineCover,
+    gallery: project6Gallery,
+  },
+  {
+    title: 'AI 辅助搭建组件库',
+    role: 'AI 工作流 & 组件库搭建',
+    period: '组件规范沉淀',
+    metric: '效率提升',
+    summary:
+      '借助 AI 辅助搭建 PC 端教育 AI 组件库，高效输出标注与开发说明，缩短设计落地周期，并按需补齐空变体组件，适配后续产品迭代与新增功能。',
+    tone: 'silver',
+    cover: aiComponentLibraryCover,
+    gallery: project7Gallery,
   },
 ];
+
+const allWorks = [
+  ...projectWorks.map((work) => ({ ...work, category: '\u9879\u76ee\u4f5c\u54c1' })),
+  ...teamWorks.map((work) => ({ ...work, category: '\u56e2\u961f\u4f5c\u54c1' })),
+];
+
+const workScrollKey = 'portfolio-work-scroll-y';
+
+function rememberWorkScroll() {
+  sessionStorage.setItem(workScrollKey, String(window.scrollY));
+}
+
+function takeRememberedWorkScroll() {
+  const value = sessionStorage.getItem(workScrollKey);
+  sessionStorage.removeItem(workScrollKey);
+  const position = Number(value);
+  return Number.isFinite(position) ? position : null;
+}
 
 const strengths = [
   {
@@ -250,6 +309,18 @@ function Header() {
         {navItems.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
       </nav>
       <a className="header-cta" href="mailto:942179107@qq.com">联系我</a>
+    </header>
+  );
+}
+function DetailHeader({ onBack }) {
+  return (
+    <header className="site-header detail-site-header is-floating">
+      <a className="brand" href="#hero" aria-label={'\u56de\u5230\u9996\u9875'}><span>HJH</span><strong>Portfolio</strong></a>
+      <nav className="nav-links" aria-label={'\u4f5c\u54c1\u8be6\u60c5\u5bfc\u822a'}>
+        <a href="#work">{'\u4f5c\u54c1'}</a>
+        <a href="#contact">{'\u8054\u7cfb'}</a>
+      </nav>
+      <a className="header-cta" href="#work" onClick={onBack}>{'\u8fd4\u56de\u4f5c\u54c1'}</a>
     </header>
   );
 }
@@ -397,9 +468,9 @@ function WorkGroup({ title, label, works, compact = false }) {
       </div>
       <div className="project-grid">
         {works.map((project, index) => (
-          <a className={`project-card ${project.tone}`} href="#contact" key={project.title}>
+          <a className={`project-card ${project.tone}`} href={`#work/${encodeURIComponent(project.title)}`} onClick={rememberWorkScroll} key={project.title}>
             <div className="project-visual">
-              <span className="visual-index">{String(index + 1).padStart(2, '0')}</span>
+              {project.cover && <img className="project-cover-image" src={project.cover} alt="" loading="lazy" />}
               <div className="visual-window">
                 <i />
                 <i />
@@ -416,12 +487,74 @@ function WorkGroup({ title, label, works, compact = false }) {
                 <span>{project.period}</span>
                 <strong>{project.metric}</strong>
               </div>
-              <span className="detail-link">查看详情</span>
+              <span className="detail-link">{'\u67e5\u770b\u8be6\u60c5'}</span>
             </div>
           </a>
         ))}
       </div>
     </div>
+  );
+}
+
+function WorkDetail({ project, onBack }) {
+  const gallery = project.gallery?.length ? project.gallery : [project.cover].filter(Boolean);
+  const tags = project.tags?.length ? project.tags : [project.role, project.metric].filter(Boolean);
+
+  return (
+    <main className="work-detail-page">
+      <SectionGrainient />
+      <DetailHeader onBack={onBack} />
+      <section className="work-detail-shell shell">
+        <aside className="work-detail-info">
+          <a className="back-link" href="#work" onClick={onBack}>{'\u8fd4\u56de\u7cbe\u9009\u4f5c\u54c1'}</a>
+          <p className="eyebrow">{project.category}</p>
+          <h1>{project.title}</h1>
+          <p className="work-detail-summary">{project.summary}</p>
+
+          <div className="work-detail-tags" aria-label={'\u4f5c\u54c1\u6807\u7b7e'}>
+            {tags.map((tag) => <span key={tag}>{tag}</span>)}
+          </div>
+
+          <dl className="work-detail-meta">
+            <div>
+              <dt>{'\u9879\u76ee\u89d2\u8272'}</dt>
+              <dd>{project.role}</dd>
+            </div>
+            <div>
+              <dt>{'\u9879\u76ee\u5468\u671f'}</dt>
+              <dd>{project.period}</dd>
+            </div>
+            <div>
+              <dt>{'\u6210\u679c\u4eae\u70b9'}</dt>
+              <dd>{project.metric}</dd>
+            </div>
+            <div>
+              <dt>{'\u5c55\u793a\u65b9\u5f0f'}</dt>
+              <dd>{project.prototypeUrl && gallery.length ? 'Figma \u539f\u578b + \u56fe\u7247\u6d41' : project.prototypeUrl ? 'Figma \u539f\u578b' : '\u56fe\u7247\u6d41'}</dd>
+            </div>
+          </dl>
+        </aside>
+
+        <div className="work-detail-gallery">
+          {project.prototypeUrl ? (
+            <iframe
+              className="prototype-frame"
+              title={project.title + " Figma prototype"}
+              src={project.prototypeUrl}
+              allowFullScreen
+            />
+          ) : null}
+          {gallery.map((image, index) => (
+            <img
+              className="work-detail-image"
+              src={image}
+              alt={project.title + " \u4f5c\u54c1\u5c55\u793a " + (index + 1)}
+              key={project.title + index}
+            />
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
 
@@ -492,9 +625,9 @@ function Contact() {
   );
 }
 
-function usePortfolioMotion(root) {
+function usePortfolioMotion(root, enabled = true) {
   useLayoutEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    if (!enabled || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
 
     let cancelled = false;
     let context;
@@ -554,11 +687,52 @@ function usePortfolioMotion(root) {
       cancelled = true;
       context?.revert();
     };
-  }, [root]);
+  }, [root, enabled]);
 }
 export default function App() {
   const root = useRef(null);
-  usePortfolioMotion(root);
+  const [route, setRoute] = useState(() => window.location.hash);
+  const detailMatch = route.match(/^#work\/(.+)$/);
+  usePortfolioMotion(root, !detailMatch);
+
+  useEffect(() => {
+    const handleRouteChange = () => setRoute(window.location.hash);
+    window.addEventListener('hashchange', handleRouteChange);
+    return () => window.removeEventListener('hashchange', handleRouteChange);
+  }, []);
+
+  useEffect(() => {
+    if (detailMatch) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
+
+    if (route === '#work') {
+      const rememberedPosition = takeRememberedWorkScroll();
+      if (rememberedPosition !== null) {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: rememberedPosition, behavior: 'auto' });
+        });
+      }
+    }
+  }, [detailMatch, route]);
+
+  const selectedProject = detailMatch
+    ? allWorks.find((work) => work.title === decodeURIComponent(detailMatch[1]))
+    : null;
+
+  const handleBackToWork = () => {
+    if (!sessionStorage.getItem(workScrollKey)) {
+      const workSection = document.getElementById('work');
+      if (workSection) sessionStorage.setItem(workScrollKey, String(workSection.offsetTop));
+    }
+  };
+
+  if (detailMatch) {
+    return selectedProject
+      ? <WorkDetail project={selectedProject} onBack={handleBackToWork} />
+      : <WorkDetail project={allWorks[0]} onBack={handleBackToWork} />;
+  }
 
   return (
     <main ref={root}>
