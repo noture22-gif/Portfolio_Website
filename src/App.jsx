@@ -10,6 +10,7 @@ import aiComponentLibraryCover from '../assets/p7.png';
 import emailIcon from '../assets/icon/email.svg';
 import phoneIcon from '../assets/icon/phone.svg';
 import wechatIcon from '../assets/icon/wechat.svg';
+import arrowRightIcon from '../assets/icon/arrow-right.svg';
 import TiltedCard from './components/TiltedCard.jsx';
 import BorderGlow from './components/BorderGlow.jsx';
 
@@ -40,8 +41,8 @@ const contacts = [
 
 const stats = [
   { value: '8+', label: '年设计经验' },
-  { value: '40%', label: '名词登记量提升' },
-  { value: '100%', label: '合规术语解析准确率' },
+  { value: '30+', label: '完成项目' },
+  { value: '100%', label: '客户满意度' },
 ];
 
 const experiences = [
@@ -454,6 +455,16 @@ function Work() {
         />
         <WorkGroup title="项目作品" label="Project Work" works={projectWorks} />
         <WorkGroup title="团队作品" label="Team Work" works={teamWorks} compact />
+        <a
+          className="work-external-link"
+          href="https://www.zcool.com.cn/u/15584821"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span>ZCOOL 站酷地址</span>
+          <img src={arrowRightIcon} alt="" aria-hidden="true" />
+
+        </a>
       </div>
     </section>
   );
@@ -487,7 +498,7 @@ function WorkGroup({ title, label, works, compact = false }) {
                 <span>{project.period}</span>
                 <strong>{project.metric}</strong>
               </div>
-              <span className="detail-link">{'\u67e5\u770b\u8be6\u60c5'}</span>
+              {!compact && <span className="detail-link">{'\u67e5\u770b\u8be6\u60c5'}</span>}
             </div>
           </a>
         ))}
@@ -535,7 +546,7 @@ function WorkDetail({ project, onBack }) {
           </dl>
         </aside>
 
-        <div className="work-detail-gallery">
+        <div className="work-detail-gallery" onContextMenu={(event) => event.preventDefault()}>
           {project.prototypeUrl ? (
             <iframe
               className="prototype-frame"
@@ -545,12 +556,16 @@ function WorkDetail({ project, onBack }) {
             />
           ) : null}
           {gallery.map((image, index) => (
-            <img
-              className="work-detail-image"
-              src={image}
-              alt={project.title + " \u4f5c\u54c1\u5c55\u793a " + (index + 1)}
-              key={project.title + index}
-            />
+            <div className="protected-image-frame" key={project.title + index}>
+              <img
+                className="work-detail-image"
+                src={image}
+                alt={project.title + " \u4f5c\u54c1\u5c55\u793a " + (index + 1)}
+                draggable="false"
+                onDragStart={(event) => event.preventDefault()}
+              />
+              <span className="image-save-shield" aria-hidden="true" />
+            </div>
           ))}
         </div>
       </section>
